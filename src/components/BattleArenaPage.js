@@ -208,77 +208,94 @@ const BattleArenaPage = () => {
         const defender = fighters[1-i];
         const fighterKey = i === 0 ? 'fighter1' : 'fighter2';
 
-        // Energy gain
+        // Energy gain phase
         const energyGain = calculateEnergyGain(attacker);
         attacker.currentEnergy = Math.min(100, attacker.currentEnergy + energyGain);
         updateFighterState(fighterKey, { currentEnergy: attacker.currentEnergy });
         addToLog(`${attacker.monsterName} gains ${energyGain} energy!`, 'info');
         await sleep(1000);
 
-        // Ability selection
-        let ability = null;
-        let abilityType = null;
-        
-        const specialCost = calculateEnergyCosts({ ...attacker.abilities.special, type: 'special' });
-        const regularCost = calculateEnergyCosts({ ...attacker.abilities.regular, type: 'regular' });
-        
-        if (attacker.currentEnergy >= specialCost) {
-          ability = attacker.abilities.special;
-          abilityType = 'special';
-        } else if (attacker.currentEnergy >= regularCost) {
-          ability = attacker.abilities.regular;
-          abilityType = 'regular';
-        }
+        // Multiple attacks phase
+        let canStillAttack = true;
+        while (canStillAttack && attacker.currentEnergy > 0) {
+          // Determine available abilities
+          const specialCost = calculateEnergyCosts(attacker.abilities.special);
+          const regularCost = calculateEnergyCosts(attacker.abilities.regular);
+          
+          let ability = null;
+          let abilityType = null;
 
-        if (ability) {
-          // Attack execution
-          const { damage, typeMultiplier, isCritical } = calculateDamage(attacker, defender, ability);
-          defender.currentHealth = Math.max(0, defender.currentHealth - damage);
-          attacker.currentEnergy -= calculateEnergyCosts({ ...ability, type: abilityType });
-
-          updateFighterState(fighterKey, { 
-            currentEnergy: attacker.currentEnergy,
-            lastUsedAbility: abilityType
-          });
-          updateFighterState(i === 0 ? 'fighter2' : 'fighter1', { 
-            currentHealth: defender.currentHealth 
-          });
-
-          // Battle feedback
-          addToLog(`${attacker.monsterName} uses ${ability.name}!`, 'attack');
-          await sleep(1000);
-
-          if (typeMultiplier > 1) {
-            addToLog("It's super effective!", 'effect');
-            await sleep(1000);
-          } else if (typeMultiplier < 1) {
-            addToLog("It's not very effective...", 'effect');
-            await sleep(1000);
+          // Choose the most powerful ability that can be used
+          if (attacker.currentEnergy >= specialCost) {
+            ability = attacker.abilities.special;
+            abilityType = 'special';
+          } else if (attacker.currentEnergy >= regularCost) {
+            ability = attacker.abilities.regular;
+            abilityType = 'regular';
           }
 
-          if (isCritical) {
-            addToLog("Critical hit!", 'critical');
+          if (ability) {
+            const energyCost = abilityType === 'special' ? specialCost : regularCost;
+            
+            // Execute attack
+            const { damage, typeMultiplier, isCritical } = calculateDamage(attacker, defender, ability);
+            defender.currentHealth = Math.max(0, defender.currentHealth - damage);
+            attacker.currentEnergy -= energyCost;
+
+            // Update states
+            updateFighterState(fighterKey, { 
+              currentEnergy: attacker.currentEnergy,
+              lastUsedAbility: abilityType
+            });
+            updateFighterState(i === 0 ? 'fighter2' : 'fighter1', { 
+              currentHealth: defender.currentHealth 
+            });
+
+            // Battle feedback
+            addToLog(`${attacker.monsterName} uses ${ability.name}!`, 'attack');
             await sleep(1000);
+
+            if (typeMultiplier > 1) {
+              addToLog("It's super effective!", 'effect');
+              await sleep(1000);
+            } else if (typeMultiplier < 1) {
+              addToLog("It's not very effective...", 'effect');
+              await sleep(1000);
+            }
+
+            if (isCritical) {
+              addToLog("Critical hit!", 'critical');
+              await sleep(1000);
+            }
+
+            addToLog(`Deals ${damage} damage!`, 'attack');
+            await sleep(1000);
+
+            // Reset ability indicator after delay
+            setTimeout(() => {
+              updateFighterState(fighterKey, { lastUsedAbility: null });
+            }, 2000);
+
+            // Check if defender is defeated
+            if (defender.currentHealth <= 0) {
+              addToLog(`${defender.monsterName} fainted!`, 'critical');
+              await sleep(1500);
+              addToLog(`${attacker.monsterName} wins!`, 'critical');
+              await updateWins(attacker);
+              setIsBattling(false);
+              return;
+            }
+
+            // Add a small delay between multiple attacks
+            await sleep(800);
+          } else {
+            canStillAttack = false;
           }
-
-          addToLog(`Deals ${damage} damage!`, 'attack');
-          await sleep(1000);
-
-          setTimeout(() => {
-            updateFighterState(fighterKey, { lastUsedAbility: null });
-          }, 2000);
-        } else {
-          addToLog(`${attacker.monsterName} is charging energy...`, 'info');
-          await sleep(1500);
         }
 
-        if (defender.currentHealth <= 0) {
-          addToLog(`${defender.monsterName} fainted!`, 'critical');
+        if (attacker.currentEnergy < Math.min(regularCost, specialCost)) {
+          addToLog(`${attacker.monsterName} needs to recharge energy...`, 'info');
           await sleep(1500);
-          addToLog(`${attacker.monsterName} wins!`, 'critical');
-          await updateWins(attacker);
-          setIsBattling(false);
-          return;
         }
       }
 

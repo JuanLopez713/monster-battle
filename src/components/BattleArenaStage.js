@@ -67,13 +67,13 @@ const AbilityIcons = ({ abilities, currentEnergy, lastUsedAbility, isTopRight })
   </div>
 );
 
-const MonsterIcon = ({ isTopRight, monsterName, type }) => (
+const MonsterIcon = ({ isTopRight, monsterName, type, icon }) => (
   <div className={`absolute ${
     isTopRight 
-      ? 'bottom-64 right-32'  // Moved inward from right
-      : 'bottom-64 left-32'   // Moved inward from left
+      ? 'bottom-64 right-32'
+      : 'bottom-64 left-32'
   } w-20 h-20 bg-gray-300 rounded-full flex flex-col items-center justify-center`}>
-    <span className="text-3xl">🦁</span>
+    <span className="text-3xl">{icon || '🦁'}</span>
     {monsterName && (
       <div className="absolute -bottom-6 text-sm font-bold whitespace-nowrap">
         {monsterName}
@@ -113,6 +113,7 @@ export const BattleArenaStage = ({
         isTopRight={true} 
         monsterName={selectedMonsters[1]?.monsterName}
         type={selectedMonsters[1]?.type}
+        icon={selectedMonsters[1]?.monsterIcon}
       />
       <StatusBars 
         health={fighterStates.fighter2.currentHealth}
@@ -134,6 +135,7 @@ export const BattleArenaStage = ({
         isTopRight={false}
         monsterName={selectedMonsters[0]?.monsterName}
         type={selectedMonsters[0]?.type}
+        icon={selectedMonsters[0]?.monsterIcon}
       />
       <StatusBars 
         health={fighterStates.fighter1.currentHealth}

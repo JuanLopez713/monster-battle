@@ -27,7 +27,8 @@ export const MonsterSelection = ({ title, monsters, selectedMonsterId, onSelect,
                   : 'bg-gray-50 hover:bg-gray-100 cursor-pointer'
             }`}
           >
-            <div className="font-bold">
+            <div className="font-bold flex items-center gap-2">
+              <span className="text-xl">{monster.monsterIcon || '🦁'}</span>
               {monster.monsterName}
               {isUnavailable && <span className="text-sm text-red-500 ml-2">(Already Selected)</span>}
               {isSelected && <span className="text-sm text-blue-500 ml-2">(Click to Deselect)</span>}

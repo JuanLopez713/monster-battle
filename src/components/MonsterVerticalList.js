@@ -7,9 +7,9 @@ export const MonsterUIList = ({ monsters }) => (
       {monsters?.map(monster => (
         <div key={monster?.id || Math.random()} className="p-4 bg-gray-50 rounded">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{monster?.monsterIcon || '🦁'}</span>
               <h3 className="font-bold">{monster?.monsterName || 'Unnamed Monster'}</h3>
-              <p className="text-sm text-gray-600">Player: {monster?.playerTag || 'Unknown'}</p>
             </div>
             <span className="px-2 py-1 bg-gray-200 rounded text-sm">{monster?.type || 'Unknown'}</span>
             <div className="mt-1 text-sm text-green-600 font-bold">

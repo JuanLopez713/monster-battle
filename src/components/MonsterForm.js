@@ -1,5 +1,6 @@
 import React from 'react';
 import { calculateAbilityCosts } from './utils/energyCalculations';
+import { EmojiPicker } from './EmojiPicker';
 
 export const MonsterForm = ({ formData, handleInputChange, handleSubmit, message }) => {
   const totalStats = () => {
@@ -43,15 +44,25 @@ export const MonsterForm = ({ formData, handleInputChange, handleSubmit, message
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Monster Name</label>
-            <input
-              type="text"
-              name="monsterName"
-              value={formData.monsterName}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
+            <label className="block text-sm font-medium mb-1">Monster Icon</label>
+            <EmojiPicker
+              selectedEmoji={formData.monsterIcon}
+              onEmojiSelect={(emoji) => handleInputChange({
+                target: { name: 'monsterIcon', value: emoji }
+              })}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Monster Name</label>
+          <input
+            type="text"
+            name="monsterName"
+            value={formData.monsterName}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded"
+          />
         </div>
 
         {/* Type Selection */}
